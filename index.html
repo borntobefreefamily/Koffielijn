@@ -1,966 +1,840 @@
 <!DOCTYPE html>
-
 <html lang="nl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Koffie Opnemen — Teamhandboek</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#FDF6ED">
+<title>Huisplanner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --cream:#FDF6ED;--espresso:#2B1A0E;--caramel:#C8722A;--gold:#E8A84C;
+  --steam:#F3E3CC;--moss:#4A6741;--sky:#5B8FA8;--text:#1E1208;--muted:#7A5C3E;
+  --white:#FFFFFF;--border:#E8D8C4;--radius:14px;--radius-sm:9px;
+  --tijn:#2c5f8a;--tijn-light:#e8f0f7;--suzan:#4A6741;--suzan-light:#eaf3e8;
+  --extra-bg:#FFF5E6;--extra-border:#E8A84C;--done-bg:#EAF3E8;--danger:#c0392b;
+}
+html,body{height:100%;overflow:hidden;background:var(--cream);font-family:'DM Sans',sans-serif;color:var(--text);line-height:1.6}
+.app{height:100vh;display:flex;flex-direction:column;max-width:480px;margin:0 auto;background:var(--cream)}
+.screen{display:none;flex-direction:column;height:100%}
+.screen.active{display:flex}
 
-  <!-- Google Fonts: Fraunces (display) + DM Sans (body) -->
+/* PIN SCREEN */
+.pin-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.25rem;padding:2.5rem 2rem;background:var(--espresso)}
+.pin-badge{background:var(--caramel);color:#fff;font-size:.7rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:5px 16px;border-radius:100px;margin-bottom:4px}
+.pin-title{font-family:'Fraunces',serif;font-size:2.2rem;font-weight:700;color:var(--cream);text-align:center;line-height:1.1}
+.pin-title span{color:var(--gold);font-style:italic}
+.pin-sub{font-size:.85rem;color:rgba(253,246,237,.55);font-weight:300;margin-top:-8px}
+.pin-dots{display:flex;gap:12px;margin:8px 0}
+.pdot{width:13px;height:13px;border-radius:50%;border:1.5px solid rgba(255,255,255,.2);background:transparent;transition:all .2s}
+.pdot.on{background:var(--caramel);border-color:var(--caramel)}
+.pin-err{font-size:12px;color:var(--gold);height:16px;text-align:center}
+.keypad{display:grid;grid-template-columns:repeat(3,70px);gap:10px}
+.key{width:70px;height:54px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);font-size:20px;font-weight:300;color:var(--cream);cursor:pointer;transition:background .1s;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif}
+.key:active{background:rgba(255,255,255,.15)}
+.pin-hint{font-size:.7rem;color:rgba(253,246,237,.25);letter-spacing:.08em;text-transform:uppercase}
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;0,9..144,900;1,9..144,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+/* HEADER */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:.875rem 1.25rem;border-bottom:1px solid var(--border);background:var(--white);flex-shrink:0}
+.hdr-l{display:flex;align-items:center;gap:10px}
+.hdr-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#fff;font-family:'DM Sans',sans-serif}
+.hdr-name{font-family:'Fraunces',serif;font-size:17px;font-weight:700;color:var(--espresso)}
+.hdr-sub{font-size:11px;color:var(--muted);margin-top:1px;letter-spacing:.04em}
+.btn-out{font-size:12px;color:var(--muted);background:none;border:1px solid var(--border);border-radius:100px;padding:5px 14px;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.02em}
 
-  <style>
-    /* =============================================
-       CSS VARIABELEN — kleurenpalet & typografie
-    ============================================= */
-    :root {
-      --cream:     #FDF6ED;
-      --espresso:  #2B1A0E;
-      --caramel:   #C8722A;
-      --gold:      #E8A84C;
-      --steam:     #F3E3CC;
-      --moss:      #4A6741;
-      --sky:       #5B8FA8;
-      --text:      #1E1208;
-      --muted:     #7A5C3E;
-      --white:     #FFFFFF;
-      --shadow:    0 4px 24px rgba(43,26,14,.10);
-      --radius:    16px;
-      --radius-sm: 10px;
-    }
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--white);flex-shrink:0;overflow-x:auto}
+.tab{flex:1;white-space:nowrap;padding:11px 6px;font-size:11.5px;font-weight:500;color:var(--muted);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;font-family:'DM Sans',sans-serif;letter-spacing:.02em;min-width:0}
+.tab.on{color:var(--caramel);border-bottom-color:var(--caramel)}
 
-    /* =============================================
-       RESET & BASIS
-    ============================================= */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* WEEK NAV */
+.week-nav{display:flex;align-items:center;justify-content:space-between;padding:.6rem 1.25rem;background:var(--espresso);flex-shrink:0}
+.week-lbl{font-family:'Fraunces',serif;font-size:14px;font-weight:700;color:var(--cream)}
+.wbtn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:100px;padding:5px 13px;cursor:pointer;color:var(--cream);font-size:15px;line-height:1;font-family:'DM Sans',sans-serif;transition:background .15s}
+.wbtn:active{background:rgba(255,255,255,.18)}
 
-    html { scroll-behavior: smooth; }
+/* SCROLL */
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:1rem 1.25rem}
 
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--cream);
-      color: var(--text);
-      line-height: 1.65;
-      overflow-x: hidden;
-    }
+/* SECTION LABEL */
+.sec-label{font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--caramel);margin-bottom:6px;display:block}
 
-    /* =============================================
-       HERO SECTIE
-       Grote titel + subtitel + CTA knop
-    ============================================= */
-    .hero {
-      position: relative;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 80px 24px 100px;
-      background: var(--espresso);
-      overflow: hidden;
-    }
+/* DAY CARDS */
+.day-card{border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden;background:var(--white)}
+.day-hdr{padding:.75rem 1rem;background:var(--steam);display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.day-name{font-family:'Fraunces',serif;font-size:15px;font-weight:700;color:var(--espresso)}
+.day-prog{font-size:11px;color:var(--muted)}
+.day-chev{font-size:14px;color:var(--muted);transition:transform .2s;display:inline-block}
+.day-chev.open{transform:rotate(180deg)}
+.day-body{padding:.75rem 1rem}
 
-    /* Decoratieve koffiering achtergrond */
-    .hero::before {
-      content: '';
-      position: absolute;
-      width: 700px; height: 700px;
-      border-radius: 50%;
-      border: 120px solid rgba(200,114,42,.12);
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      pointer-events: none;
-    }
-    .hero::after {
-      content: '';
-      position: absolute;
-      width: 400px; height: 400px;
-      border-radius: 50%;
-      border: 60px solid rgba(232,168,76,.08);
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      pointer-events: none;
-    }
+/* LOC BLOCK */
+.loc-block{border-radius:var(--radius-sm);margin-bottom:10px;overflow:hidden;border:1px solid var(--border)}
+.loc-hdr{padding:.5rem .875rem;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--espresso)}
+.loc-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.loc-body{padding:.5rem .875rem .75rem}
 
-    .hero-badge {
-      display: inline-block;
-      background: var(--caramel);
-      color: var(--white);
-      font-size: .75rem;
-      font-weight: 600;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      padding: 6px 18px;
-      border-radius: 100px;
-      margin-bottom: 28px;
-      position: relative;
-      z-index: 1;
-      animation: fadeDown .6s ease both;
-    }
+/* TASKS */
+.task-row{display:flex;align-items:flex-start;gap:10px;padding:6px 8px;margin-bottom:2px;border-radius:8px;transition:background .15s}
+.task-row.done-row{background:var(--done-bg)}
+.task-row.extra-row{background:var(--extra-bg);border:1px solid var(--extra-border);border-radius:8px}
+.cb{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--border);background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all .15s;font-size:11px;color:#fff}
+.cb.on{background:var(--moss);border-color:var(--moss)}
+.task-txt{font-size:13px;color:var(--text);flex:1;line-height:1.45;font-weight:400}
+.task-txt.done{text-decoration:line-through;color:var(--muted)}
+.badge-extra{display:inline-block;font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:100px;background:var(--extra-border);color:var(--espresso);margin-left:5px}
+.badge-user{display:inline-block;font-size:.65rem;font-weight:600;padding:2px 7px;border-radius:100px;margin-left:4px}
 
-    .hero h1 {
-      font-family: 'Fraunces', serif;
-      font-size: clamp(2.8rem, 8vw, 6.5rem);
-      font-weight: 900;
-      line-height: 1.0;
-      color: var(--cream);
-      position: relative;
-      z-index: 1;
-      animation: fadeDown .7s ease both;
-      max-width: 800px;
-    }
+/* RECIPES */
+.recipe-block{background:#FFF9F0;border:1px solid #F3D49A;border-radius:var(--radius-sm);padding:.625rem .875rem;margin-bottom:.75rem}
+.recipe-lbl{font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--caramel);margin-bottom:.35rem;display:block}
+.recipe-item{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(200,114,42,.1)}
+.recipe-item:last-child{border-bottom:none}
+.recipe-item a{font-size:13px;color:var(--espresso);text-decoration:none;flex:1;font-weight:400}
+.recipe-item a:hover{color:var(--caramel)}
 
-    .hero h1 span {
-      color: var(--gold);
-      font-style: italic;
-    }
+/* PROGRESS */
+.prog-card{background:var(--espresso);border-radius:var(--radius);padding:.875rem 1rem;margin-bottom:1rem}
+.prog-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.prog-title{font-family:'Fraunces',serif;font-size:14px;color:var(--cream)}
+.prog-count{font-size:12px;color:rgba(253,246,237,.5)}
+.prog-bar{height:5px;background:rgba(255,255,255,.12);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;background:var(--gold);border-radius:3px;transition:width .4s}
+.prog-pct{font-size:11px;color:rgba(253,246,237,.4);margin-top:5px}
 
-    .hero-sub {
-      font-size: clamp(1rem, 2.5vw, 1.25rem);
-      color: rgba(253,246,237,.65);
-      margin-top: 20px;
-      max-width: 520px;
-      position: relative;
-      z-index: 1;
-      animation: fadeDown .85s ease both;
-      font-weight: 300;
-    }
+/* NOTES */
+.notes-area{width:100%;border:1px solid var(--border);border-radius:var(--radius-sm);padding:.5rem .75rem;font-size:13px;background:var(--cream);color:var(--text);resize:none;min-height:56px;font-family:'DM Sans',sans-serif;line-height:1.5;margin-top:.25rem}
+.notes-area:focus{outline:none;border-color:var(--caramel)}
 
-    .hero-cta {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      margin-top: 44px;
-      padding: 18px 40px;
-      background: var(--caramel);
-      color: var(--white);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 1rem;
-      font-weight: 600;
-      border-radius: 100px;
-      text-decoration: none;
-      position: relative;
-      z-index: 1;
-      transition: transform .2s, background .2s, box-shadow .2s;
-      animation: fadeDown 1s ease both;
-      box-shadow: 0 8px 32px rgba(200,114,42,.35);
-    }
-    .hero-cta:hover {
-      background: var(--gold);
-      transform: translateY(-3px);
-      box-shadow: 0 12px 40px rgba(200,114,42,.5);
-    }
+/* SAVE BTN */
+.save-btn{width:100%;padding:12px;background:var(--caramel);color:#fff;border:none;border-radius:100px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:.75rem;font-family:'DM Sans',sans-serif;letter-spacing:.04em;transition:background .15s}
+.save-btn:active{background:var(--espresso)}
+.save-btn.sec{background:transparent;color:var(--caramel);border:1.5px solid var(--caramel)}
+.flash{font-size:11px;color:var(--moss);text-align:center;margin-top:5px;height:14px;transition:opacity .4s;letter-spacing:.04em}
 
-    /* =============================================
-       SECTIE WRAPPER — gedeeld door alle secties
-    ============================================= */
-    section {
-      padding: 80px 24px;
-    }
-    .container {
-      max-width: 960px;
-      margin: 0 auto;
-    }
+/* FORMS */
+.form-card{background:var(--white);border-radius:var(--radius);padding:1rem 1.1rem;margin-bottom:1rem;border:1px solid var(--border)}
+.form-lbl{font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--caramel);margin-bottom:5px;display:block}
+.form-input{width:100%;border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 11px;font-size:13px;background:var(--cream);color:var(--text);font-family:'DM Sans',sans-serif;margin-bottom:10px}
+.form-input:focus{outline:none;border-color:var(--caramel);background:var(--white)}
+.form-input:last-child{margin-bottom:0}
+.form-2col{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.form-hint{font-size:.72rem;color:var(--muted);margin-top:-6px;margin-bottom:8px;font-style:italic}
 
-    .section-label {
-      font-size: .72rem;
-      font-weight: 700;
-      letter-spacing: .14em;
-      text-transform: uppercase;
-      color: var(--caramel);
-      margin-bottom: 10px;
-    }
+/* SETTINGS */
+.set-row{display:flex;align-items:center;justify-content:space-between;padding:.75rem 0;border-bottom:1px solid var(--border)}
+.set-row:last-child{border-bottom:none}
+.set-lbl{font-size:13px;color:var(--text);font-weight:500}
+.set-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.btn-sm{padding:6px 14px;border:1px solid var(--border);border-radius:100px;font-size:12px;background:none;color:var(--text);cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn-danger{padding:6px 14px;border:1px solid #f0c5c5;border-radius:100px;font-size:12px;background:none;color:var(--danger);cursor:pointer;font-family:'DM Sans',sans-serif}
 
-    .section-title {
-      font-family: 'Fraunces', serif;
-      font-size: clamp(1.8rem, 4vw, 3rem);
-      font-weight: 700;
-      line-height: 1.15;
-      color: var(--espresso);
-      margin-bottom: 16px;
-    }
-    .section-intro {
-      font-size: 1.05rem;
-      color: var(--muted);
-      max-width: 580px;
-    }
+/* WORKDAY PILLS */
+.day-pill{display:inline-flex;align-items:center;padding:7px 14px;border-radius:100px;border:1.5px solid var(--border);background:var(--white);font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s;margin:3px;font-family:'DM Sans',sans-serif}
+.day-pill.on{background:var(--caramel);border-color:var(--caramel);color:#fff}
 
-    /* =============================================
-       SECTIE: WAAROM — vijf voordelen als kaarten
-    ============================================= */
-    .why { background: var(--white); }
+/* SECTION TITLE (serif) */
+.sec-title{font-family:'Fraunces',serif;font-size:16px;font-weight:700;color:var(--espresso);margin:.875rem 0 .5rem;padding-bottom:.375rem;border-bottom:1px solid var(--border)}
 
-    .why-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-      gap: 20px;
-      margin-top: 48px;
-    }
-
-    .why-card {
-      background: var(--cream);
-      border-radius: var(--radius);
-      padding: 28px 22px;
-      text-align: center;
-      transition: transform .2s, box-shadow .2s;
-    }
-    .why-card:hover {
-      transform: translateY(-4px);
-      box-shadow: var(--shadow);
-    }
-
-    .why-icon {
-      font-size: 2.2rem;
-      margin-bottom: 14px;
-    }
-    .why-card h3 {
-      font-weight: 600;
-      font-size: .95rem;
-      color: var(--espresso);
-      margin-bottom: 6px;
-    }
-    .why-card p {
-      font-size: .85rem;
-      color: var(--muted);
-    }
-
-    /* =============================================
-       SECTIE: STAP-VOOR-STAP FLOW
-       Vijf genummerde stappen in verticale lijn
-    ============================================= */
-    .flow { background: var(--espresso); }
-    .flow .section-label { color: var(--gold); }
-    .flow .section-title { color: var(--cream); }
-    .flow .section-intro { color: rgba(253,246,237,.6); }
-
-    .steps {
-      margin-top: 52px;
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      position: relative;
-    }
-
-    /* Verticale verbindingslijn */
-    .steps::before {
-      content: '';
-      position: absolute;
-      left: 32px;
-      top: 0; bottom: 0;
-      width: 2px;
-      background: rgba(232,168,76,.2);
-    }
-
-    .step {
-      display: flex;
-      gap: 28px;
-      align-items: flex-start;
-      position: relative;
-      padding-bottom: 40px;
-    }
-    .step:last-child { padding-bottom: 0; }
-
-    .step-num {
-      flex-shrink: 0;
-      width: 64px; height: 64px;
-      border-radius: 50%;
-      background: var(--caramel);
-      color: var(--white);
-      font-family: 'Fraunces', serif;
-      font-size: 1.6rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      z-index: 1;
-      box-shadow: 0 0 0 6px var(--espresso);
-    }
-
-    .step-body { padding-top: 12px; }
-    .step-body h3 {
-      font-family: 'Fraunces', serif;
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: var(--cream);
-      margin-bottom: 8px;
-    }
-    .step-body p {
-      color: rgba(253,246,237,.7);
-      font-size: .95rem;
-      margin-bottom: 14px;
-    }
-
-    /* Kleine pill-tags per stap */
-    .tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .tag {
-      display: inline-block;
-      padding: 5px 14px;
-      border-radius: 100px;
-      font-size: .8rem;
-      font-weight: 500;
-    }
-    .tag-coffee  { background: rgba(200,114,42,.25); color: var(--gold); }
-    .tag-milk    { background: rgba(91,143,168,.25);  color: #9dcfe8; }
-    .tag-extra   { background: rgba(74,103,65,.35);   color: #a8d4a0; }
-    .tag-confirm { background: rgba(232,168,76,.2);   color: var(--gold); }
-    .tag-close   { background: rgba(253,246,237,.1);  color: rgba(253,246,237,.8); }
-
-    /* Quote-blok voor herhaal & afronden stap */
-    .step-quote {
-      margin-top: 12px;
-      border-left: 3px solid var(--caramel);
-      padding: 12px 18px;
-      background: rgba(253,246,237,.05);
-      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-      color: rgba(253,246,237,.85);
-      font-style: italic;
-      font-size: .95rem;
-    }
-
-    /* =============================================
-       SECTIE: KEUZEKAARTEN
-       Drie kolommen: koffie / melk / extra
-    ============================================= */
-    .choices { background: var(--steam); }
-
-    .choices-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 28px;
-      margin-top: 48px;
-    }
-
-    .choice-card {
-      background: var(--white);
-      border-radius: var(--radius);
-      padding: 30px 26px;
-      box-shadow: var(--shadow);
-    }
-
-    .choice-card-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 22px;
-    }
-    .choice-card-icon {
-      font-size: 1.8rem;
-    }
-    .choice-card h3 {
-      font-family: 'Fraunces', serif;
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: var(--espresso);
-    }
-
-    .choice-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 9px;
-    }
-    .choice-list li {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: .92rem;
-      color: var(--text);
-      padding: 9px 14px;
-      border-radius: var(--radius-sm);
-      background: var(--cream);
-      transition: background .15s;
-    }
-    .choice-list li:hover { background: var(--steam); }
-    .choice-list li span.dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .dot-coffee  { background: var(--caramel); }
-    .dot-milk    { background: var(--sky); }
-    .dot-extra   { background: var(--moss); }
-
-    /* =============================================
-       SECTIE: VOORBEELDGESPREKKEN
-       Drie dialogen in kaarten
-    ============================================= */
-    .examples { background: var(--white); }
-
-    .examples-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 24px;
-      margin-top: 48px;
-    }
-
-    .example-card {
-      border-radius: var(--radius);
-      overflow: hidden;
-      box-shadow: var(--shadow);
-    }
-
-    .example-card-header {
-      padding: 16px 22px;
-      font-weight: 600;
-      font-size: .85rem;
-      letter-spacing: .05em;
-    }
-    .example-card-header.simple   { background: #FFF0E0; color: var(--caramel); }
-    .example-card-header.milk     { background: #E5F0F6; color: var(--sky); }
-    .example-card-header.complex  { background: #EAF2E8; color: var(--moss); }
-
-    .example-body {
-      padding: 22px;
-      background: var(--cream);
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .bubble {
-      padding: 10px 16px;
-      border-radius: 16px;
-      font-size: .9rem;
-      max-width: 90%;
-    }
-    .bubble-waiter {
-      background: var(--espresso);
-      color: var(--cream);
-      align-self: flex-end;
-      border-bottom-right-radius: 4px;
-    }
-    .bubble-klant {
-      background: var(--white);
-      color: var(--text);
-      align-self: flex-start;
-      border-bottom-left-radius: 4px;
-      box-shadow: 0 2px 8px rgba(0,0,0,.06);
-    }
-    .speaker {
-      font-size: .7rem;
-      font-weight: 700;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      margin-bottom: 3px;
-      opacity: .6;
-    }
-
-    /* =============================================
-       SECTIE: GOUDEN REGEL — samenvatting
-    ============================================= */
-    .golden {
-      background: var(--caramel);
-      text-align: center;
-    }
-    .golden .section-label { color: rgba(255,255,255,.7); }
-    .golden .section-title { color: var(--white); }
-
-    .golden-flow {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 36px;
-    }
-
-    .golden-step {
-      background: rgba(255,255,255,.18);
-      color: var(--white);
-      padding: 12px 22px;
-      border-radius: 100px;
-      font-weight: 600;
-      font-size: .95rem;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .golden-arrow {
-      color: rgba(255,255,255,.5);
-      font-size: 1.2rem;
-    }
-
-    .golden-sub {
-      margin-top: 28px;
-      color: rgba(255,255,255,.8);
-      font-size: .95rem;
-      font-style: italic;
-      font-family: 'Fraunces', serif;
-    }
-
-    /* =============================================
-       SECTIE: TEAMAFSPRAAK — footer blok
-    ============================================= */
-    .team {
-      background: var(--espresso);
-      text-align: center;
-      padding: 60px 24px;
-    }
-
-    .team-box {
-      max-width: 640px;
-      margin: 0 auto;
-      background: rgba(255,255,255,.05);
-      border: 1px solid rgba(255,255,255,.1);
-      border-radius: var(--radius);
-      padding: 44px 36px;
-    }
-
-    .team-box .icon { font-size: 2.5rem; margin-bottom: 16px; }
-    .team-box h2 {
-      font-family: 'Fraunces', serif;
-      font-size: 1.8rem;
-      color: var(--cream);
-      margin-bottom: 16px;
-    }
-    .team-box p {
-      color: rgba(253,246,237,.65);
-      font-size: .98rem;
-      line-height: 1.7;
-    }
-    .team-box strong { color: var(--gold); }
-
-    /* =============================================
-       FOOTER
-    ============================================= */
-    footer {
-      background: var(--espresso);
-      border-top: 1px solid rgba(255,255,255,.06);
-      text-align: center;
-      padding: 24px;
-      color: rgba(253,246,237,.3);
-      font-size: .78rem;
-    }
-
-    /* =============================================
-       ANIMATIES
-    ============================================= */
-    @keyframes fadeDown {
-      from { opacity: 0; transform: translateY(-16px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* =============================================
-       RESPONSIVE — mobiel eerst
-    ============================================= */
-    @media (max-width: 600px) {
-      .steps::before { left: 28px; }
-      .step-num { width: 56px; height: 56px; font-size: 1.3rem; }
-      .golden-step { font-size: .85rem; padding: 10px 16px; }
-    }
-  </style>
-
+.empty{font-size:13px;color:var(--muted);font-style:italic;padding:.5rem 0;font-weight:300}
+.loading-wrap{display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:12px;background:var(--espresso)}
+.spinner{width:28px;height:28px;border:2px solid rgba(255,255,255,.15);border-top-color:var(--caramel);border-radius:50%;animation:spin .7s linear infinite}
+.loading-txt{font-size:13px;color:rgba(253,246,237,.4);font-family:'DM Sans',sans-serif;letter-spacing:.06em;text-transform:uppercase}
+@keyframes spin{to{transform:rotate(360deg)}}
+.translate-hint{font-size:.72rem;color:var(--muted);margin-top:-6px;margin-bottom:8px;font-style:italic}
+</style>
 </head>
 <body>
+<div class="app">
 
-  <!-- =============================================
-       HERO SECTIE
-  ============================================= -->
+<div class="loading-wrap" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-txt">Laden...</div>
+</div>
 
-  <header class="hero" id="top">
-    <span class="hero-badge">☕ Intern teamhandboek</span>
-    <h1>Koffie opnemen<br /><span>doe je zo.</span></h1>
-    <p class="hero-sub">Dezelfde vragen, dezelfde volgorde, elke keer. Zo creëren we rust voor de klant én voor jou.</p>
-    <a href="#flow" class="hero-cta">
-      <span>Bekijk de stappen</span>
-      <span>↓</span>
-    </a>
-  </header>
-
-  <!-- =============================================
-       WAAROM DEZE WERKWIJZE
-  ============================================= -->
-
-  <section class="why">
-    <div class="container">
-      <p class="section-label">Waarom dit werkt</p>
-      <h2 class="section-title">Eén standaard,<br />meer gemak voor iedereen</h2>
-      <p class="section-intro">Als iedereen dezelfde flow volgt, gaat het sneller, worden er minder fouten gemaakt, en voelt de klant zich goed geholpen.</p>
-
-```
-  <div class="why-grid">
-    <!-- Kaart 1 -->
-    <div class="why-card">
-      <div class="why-icon">💬</div>
-      <h3>Duidelijkheid voor de klant</h3>
-      <p>De klant weet wat er gevraagd gaat worden en voelt zich serieus genomen.</p>
+<!-- PIN -->
+<div class="screen" id="s-pin">
+  <div class="pin-wrap">
+    <div class="pin-badge">Huisplanner</div>
+    <div class="pin-title">Jouw huis,<br><span>op orde.</span></div>
+    <div class="pin-sub">Structuur met warmte</div>
+    <div class="pin-dots">
+      <div class="pdot" id="pd0"></div><div class="pdot" id="pd1"></div>
+      <div class="pdot" id="pd2"></div><div class="pdot" id="pd3"></div>
     </div>
-    <!-- Kaart 2 -->
-    <div class="why-card">
-      <div class="why-icon">✅</div>
-      <h3>Minder fouten</h3>
-      <p>Door altijd dezelfde vragen te stellen, vergeet je nooit een keuze.</p>
+    <div id="pin-err" class="pin-err"></div>
+    <div class="keypad">
+      <button class="key" onclick="pp('1')">1</button><button class="key" onclick="pp('2')">2</button><button class="key" onclick="pp('3')">3</button>
+      <button class="key" onclick="pp('4')">4</button><button class="key" onclick="pp('5')">5</button><button class="key" onclick="pp('6')">6</button>
+      <button class="key" onclick="pp('7')">7</button><button class="key" onclick="pp('8')">8</button><button class="key" onclick="pp('9')">9</button>
+      <button class="key" style="visibility:hidden"></button><button class="key" onclick="pp('0')">0</button><button class="key" onclick="pdel()" style="font-size:18px">⌫</button>
     </div>
-    <!-- Kaart 3 -->
-    <div class="why-card">
-      <div class="why-icon">⚡</div>
-      <h3>Snellere service</h3>
-      <p>Geen heen-en-weer gelopen. Alles wordt in één keer goed opgenomen.</p>
+    <div class="pin-hint">Voer je PIN in</div>
+  </div>
+</div>
+
+<!-- WORKER -->
+<div class="screen" id="s-worker">
+  <div class="hdr">
+    <div class="hdr-l">
+      <div class="hdr-avatar" id="w-avatar">D</div>
+      <div><div class="hdr-name" id="w-name">Diana</div><div class="hdr-sub" id="w-sub">Medewerker</div></div>
     </div>
-    <!-- Kaart 4 -->
-    <div class="why-card">
-      <div class="why-icon">🧘</div>
-      <h3>Rust voor jou</h3>
-      <p>Jij hoeft niet meer na te denken over wat je vraagt — de flow doet het werk.</p>
+    <button class="btn-out" onclick="logout()">Uitloggen</button>
+  </div>
+  <div class="week-nav">
+    <button class="wbtn" onclick="chWeek(-1)">‹</button>
+    <div class="week-lbl" id="w-week-lbl">Deze week</div>
+    <button class="wbtn" onclick="chWeek(1)">›</button>
+  </div>
+  <div class="scroll">
+    <div id="w-prog"></div>
+    <div id="w-days"></div>
+  </div>
+</div>
+
+<!-- MANAGER -->
+<div class="screen" id="s-manager">
+  <div class="hdr">
+    <div class="hdr-l">
+      <div class="hdr-avatar" id="m-avatar">T</div>
+      <div><div class="hdr-name" id="m-name">Beheerder</div><div class="hdr-sub" id="m-sub">Beheerder</div></div>
     </div>
-    <!-- Kaart 5 -->
-    <div class="why-card">
-      <div class="why-icon">🤝</div>
-      <h3>Eén teamstandaard</h3>
-      <p>Nieuw of ervaren: iedereen doet het op dezelfde manier. Dat bouwt vertrouwen.</p>
+    <button class="btn-out" onclick="logout()">Uitloggen</button>
+  </div>
+  <div class="tabs">
+    <button class="tab on" id="t-week" onclick="mTab('week')">Week</button>
+    <button class="tab" id="t-plan" onclick="mTab('plan')">Planning</button>
+    <button class="tab" id="t-extra" onclick="mTab('extra')">Extra</button>
+    <button class="tab" id="t-recipe" onclick="mTab('recipe')">Recepten</button>
+    <button class="tab" id="t-taken" onclick="mTab('taken')">Taken</button>
+    <button class="tab" id="t-inst" onclick="mTab('inst')">Instellingen</button>
+  </div>
+
+  <!-- WEEK -->
+  <div id="mt-week" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+    <div class="week-nav">
+      <button class="wbtn" onclick="chWeek(-1)">‹</button>
+      <div class="week-lbl" id="m-week-lbl">Deze week</div>
+      <button class="wbtn" onclick="chWeek(1)">›</button>
+    </div>
+    <div class="scroll"><div id="m-days"></div></div>
+  </div>
+
+  <!-- PLANNING -->
+  <div id="mt-plan" class="scroll" style="display:none">
+    <span class="sec-label">Weekplanning</span>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:1rem;font-weight:300">Kies per dag welke locaties Diana schoonmaakt. Sleep locaties tussen dagen om te wisselen.</div>
+    <div id="plan-grid"></div>
+  </div>
+
+  <!-- EXTRA -->
+  <div id="mt-extra" class="scroll" style="display:none">
+    <span class="sec-label">Extra taak</span>
+    <div class="form-card">
+      <label class="form-lbl">Omschrijving (NL)</label>
+      <input class="form-input" type="text" id="ex-txt-nl" placeholder="bijv. Zwembad extra schoonmaken" onblur="autoTranslate('ex-txt-nl','ex-txt-pt','nl')">
+      <div class="translate-hint">↳ Portugese vertaling wordt automatisch ingevuld</div>
+      <label class="form-lbl">Descrição (PT)</label>
+      <input class="form-input" type="text" id="ex-txt-pt" placeholder="Automatisch vertaald...">
+      <div class="form-2col">
+        <div><label class="form-lbl">Locatie</label><select class="form-input" id="ex-loc"></select></div>
+        <div><label class="form-lbl">Dag</label><select class="form-input" id="ex-day"></select></div>
+      </div>
+      <label class="form-lbl">Herhaling</label>
+      <select class="form-input" id="ex-repeat" onchange="toggleRepeat()">
+        <option value="once">Eenmalig</option>
+        <option value="weeks">Aantal weken herhalen</option>
+        <option value="until">Herhalen tot datum</option>
+      </select>
+      <div id="ex-rep-weeks" style="display:none">
+        <label class="form-lbl">Aantal weken</label>
+        <input class="form-input" type="number" id="ex-weeks-n" min="1" max="52" value="2">
+      </div>
+      <div id="ex-rep-until" style="display:none">
+        <label class="form-lbl">Tot en met</label>
+        <input class="form-input" type="date" id="ex-until">
+      </div>
+      <label class="form-lbl">Startweek</label>
+      <select class="form-input" id="ex-week">
+        <option value="0">Deze week</option>
+        <option value="1">Volgende week</option>
+        <option value="2">Over 2 weken</option>
+      </select>
+      <button class="save-btn" onclick="addExtra()">+ Inplannen</button>
+    </div>
+    <div id="ex-list"></div>
+  </div>
+
+  <!-- RECEPTEN -->
+  <div id="mt-recipe" class="scroll" style="display:none">
+    <span class="sec-label">Recept toevoegen</span>
+    <div class="form-card">
+      <label class="form-lbl">Gerecht</label>
+      <input class="form-input" type="text" id="rec-name" placeholder="bijv. Gehaktbal">
+      <label class="form-lbl">Link</label>
+      <input class="form-input" type="url" id="rec-url" placeholder="https://...">
+      <div class="form-2col">
+        <div><label class="form-lbl">Dag</label><select class="form-input" id="rec-day"></select></div>
+        <div><label class="form-lbl">Week</label><select class="form-input" id="rec-week"><option value="0">Deze week</option><option value="1">Volgende week</option></select></div>
+      </div>
+      <button class="save-btn" onclick="addRecipe()">+ Toevoegen</button>
+    </div>
+    <div id="rec-list"></div>
+  </div>
+
+  <!-- TAKEN -->
+  <div id="mt-taken" class="scroll" style="display:none">
+    <div id="fixed-list"></div>
+    <span class="sec-label" style="margin-top:.75rem;display:block">Nieuwe vaste taak</span>
+    <div class="form-card">
+      <label class="form-lbl">Omschrijving (NL)</label>
+      <input class="form-input" type="text" id="ft-nl" placeholder="Taakomschrijving..." onblur="autoTranslate('ft-nl','ft-pt','nl')">
+      <div class="translate-hint">↳ Portugese vertaling wordt automatisch ingevuld</div>
+      <label class="form-lbl">Descrição (PT)</label>
+      <input class="form-input" type="text" id="ft-pt" placeholder="Automatisch vertaald...">
+      <div class="form-2col">
+        <div><label class="form-lbl">Locatie</label><select class="form-input" id="ft-loc"></select></div>
+        <div><label class="form-lbl">Categorie</label>
+          <select class="form-input" id="ft-cat">
+            <option value="tuin">Tuin & buiten</option>
+            <option value="zwembad">Zwembad</option>
+            <option value="binnen">Binnen</option>
+            <option value="koken">Koken</option>
+            <option value="extra_tijd">Extra indien tijd</option>
+          </select>
+        </div>
+      </div>
+      <button class="save-btn" onclick="addFixed()">+ Taak toevoegen</button>
+    </div>
+  </div>
+
+  <!-- INSTELLINGEN -->
+  <div id="mt-inst" class="scroll" style="display:none">
+    <span class="sec-label">Mijn profiel</span>
+    <div class="form-card">
+      <label class="form-lbl">Naam</label>
+      <input class="form-input" type="text" id="inst-name" placeholder="Jouw naam">
+      <label class="form-lbl">Nieuwe PIN</label>
+      <input class="form-input" type="password" id="inst-pin" placeholder="4 cijfers — laat leeg om niet te wijzigen" maxlength="4">
+      <label class="form-lbl">PIN bevestigen</label>
+      <input class="form-input" type="password" id="inst-pin2" placeholder="Herhaal PIN" maxlength="4">
+      <label class="form-lbl">Taal</label>
+      <select class="form-input" id="inst-lang"><option value="nl">Nederlands</option><option value="pt">Português</option></select>
+      <button class="save-btn" onclick="saveProfile()">Opslaan</button>
+      <div id="inst-flash" class="flash" style="opacity:0"></div>
+    </div>
+    <span class="sec-label">Werkdagen medewerker</span>
+    <div class="form-card">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:.75rem;font-weight:300">De planning toont alleen de geselecteerde werkdagen.</div>
+      <div id="day-toggles" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.75rem"></div>
+      <button class="save-btn" onclick="saveWorkdays()">Werkdagen opslaan</button>
+      <div id="wd-flash" class="flash" style="opacity:0"></div>
+    </div>
+    <span class="sec-label">Locaties</span>
+    <div class="form-card">
+      <div id="loc-list"></div>
+      <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
+        <input type="text" id="new-loc-name" placeholder="Naam locatie" class="form-input" style="flex:1;margin:0">
+        <input type="color" id="new-loc-color" value="#C8722A" style="width:40px;height:38px;border:1px solid var(--border);border-radius:8px;padding:2px;cursor:pointer">
+        <button class="btn-sm" onclick="addLocation()">+</button>
+      </div>
+    </div>
+    <span class="sec-label">Week beheren</span>
+    <div class="form-card">
+      <div class="set-row"><div><div class="set-lbl">Vinkjes wissen</div><div class="set-sub">Begin nieuwe week opgeschoond</div></div><button class="btn-danger" onclick="clearChecks()">Wissen</button></div>
     </div>
   </div>
 </div>
-```
 
-  </section>
-
-  <!-- =============================================
-       STAP-VOOR-STAP FLOW
-  ============================================= -->
-
-  <section class="flow" id="flow">
-    <div class="container">
-      <p class="section-label">De koffie-flow</p>
-      <h2 class="section-title">Vijf stappen, altijd in deze volgorde</h2>
-      <p class="section-intro">Volg deze volgorde bij elke koffie-bestelling. Sla geen stap over, ook als het druk is.</p>
-
-```
-  <div class="steps">
-
-    <!-- Stap 1: Welke koffie -->
-    <div class="step">
-      <div class="step-num">1</div>
-      <div class="step-body">
-        <h3>Welke koffie?</h3>
-        <p>Begin altijd met de vraag welk drankje de klant wil. Noem gerust een paar opties als de klant twijfelt.</p>
-        <div class="tags">
-          <span class="tag tag-coffee">Espresso</span>
-          <span class="tag tag-coffee">Cappuccino</span>
-          <span class="tag tag-coffee">Latte</span>
-          <span class="tag tag-coffee">Americano</span>
-          <span class="tag tag-coffee">Flat white</span>
-          <span class="tag tag-coffee">Macchiato</span>
-          <span class="tag tag-coffee">Iced coffee</span>
-          <span class="tag tag-coffee">Koffie verkeerd</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Stap 2: Welke melk -->
-    <div class="step">
-      <div class="step-num">2</div>
-      <div class="step-body">
-        <h3>Welk soort melk?</h3>
-        <p>Vraag dit altijd, ook bij drankjes waarbij melk standaard lijkt. Niet iedereen drinkt gewone melk.</p>
-        <div class="tags">
-          <span class="tag tag-milk">Gewone melk</span>
-          <span class="tag tag-milk">Havermelk</span>
-          <span class="tag tag-milk">Kokosmelk</span>
-          <span class="tag tag-milk">Geen melk</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Stap 3: Extra wensen -->
-    <div class="step">
-      <div class="step-num">3</div>
-      <div class="step-body">
-        <h3>Nog extra wensen?</h3>
-        <p>Een korte open vraag is genoeg. Klanten die iets willen, geven het aan. Je hoeft niet alles op te sommen.</p>
-        <div class="tags">
-          <span class="tag tag-extra">Extra shot</span>
-          <span class="tag tag-extra">Suikervrij</span>
-          <span class="tag tag-extra">Decaf</span>
-          <span class="tag tag-extra">Extra heet</span>
-          <span class="tag tag-extra">IJsblokjes</span>
-          <span class="tag tag-extra">Cacao / kaneel</span>
-          <span class="tag tag-extra">Geen schuim</span>
-          <span class="tag tag-extra">To-go</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Stap 4: Herhalen -->
-    <div class="step">
-      <div class="step-num">4</div>
-      <div class="step-body">
-        <h3>Herhaal de bestelling</h3>
-        <p>Vat de bestelling kort samen en controleer of je het goed hebt. Dit voorkomt fouten én stelt de klant gerust.</p>
-        <div class="step-quote">
-          "Dat is een cappuccino met havermelk, extra heet — klopt dat?"
-        </div>
-      </div>
-    </div>
-
-    <!-- Stap 5: Vriendelijk afronden -->
-    <div class="step">
-      <div class="step-num">5</div>
-      <div class="step-body">
-        <h3>Vriendelijk afronden</h3>
-        <p>Sluit de interactie positief en zelfverzekerd af. Kort en warm is precies goed.</p>
-        <div class="step-quote">
-          "Top, die komt er zo aan!" &nbsp;·&nbsp; "Ogenblikje, ik maak hem meteen voor je klaar."
-        </div>
-      </div>
-    </div>
-
-  </div>
 </div>
-```
+<script>
+const SB_URL='https://imojddlvfkpbistifqav.supabase.co';
+const SB_KEY='sb_publishable_qBefjbJ833G3_zbRy-A_EA_42CEebvW';
+const sb=supabase.createClient(SB_URL,SB_KEY);
+const HID='11111111-1111-1111-1111-111111111111';
+const DAYS_NL=['Maandag','Dinsdag','Woensdag','Donderdag','Vrijdag','Zaterdag','Zondag'];
+const DAYS_PT=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+const CAT_NL={tuin:'Tuin & buiten',zwembad:'Zwembad',binnen:'Binnen',koken:'Koken',extra_tijd:'Extra indien tijd'};
+const CAT_PT={tuin:'Jardim & exterior',zwembad:'Piscina',binnen:'Interior',koken:'Cozinhar',extra_tijd:'Extra se houver tempo'};
 
-  </section>
+let CU=null,weekOff=0,pinBuf='';
+let D={users:[],locations:[],fixedTasks:[],weekSchedule:[],extraTasks:[],checks:{},notes:{},recipes:[],workdays:[0,1,3,4]};
+let rtSubs=[];
 
-  <!-- =============================================
-       VISUELE KEUZEKAARTEN
-  ============================================= -->
+function lang(){return CU?.language||'nl';}
+function days(){return lang()==='pt'?DAYS_PT:DAYS_NL;}
+function cats(){return lang()==='pt'?CAT_PT:CAT_NL;}
+function txt(o){return lang()==='pt'&&o.text_pt?o.text_pt:o.text_nl;}
 
-  <section class="choices">
-    <div class="container">
-      <p class="section-label">Snelle keuzekaarten</p>
-      <h2 class="section-title">Alles op een rij</h2>
-      <p class="section-intro">Gebruik deze kaarten als spiekbriefje tijdens het werk of voor het inwerken van nieuwe collega's.</p>
+function wkey(off=0){
+  const n=new Date(),m=new Date(n);
+  m.setDate(n.getDate()-((n.getDay()+6)%7)+off*7);
+  return m.toISOString().slice(0,10);
+}
+function wlbl(off){
+  const map={nl:{0:'Deze week',1:'Volgende week','-1':'Vorige week'},pt:{0:'Esta semana',1:'Próxima semana','-1':'Semana passada'}};
+  return map[lang()][off]||`Week ${off}`;
+}
 
-```
-  <div class="choices-grid">
+function ucolor(uid){
+  const u=D.users.find(x=>x.id===uid);if(!u)return '#7A5C3E';
+  const n=u.name.toLowerCase();
+  if(n.includes('tijn'))return '#2c5f8a';
+  if(n.includes('suzan'))return '#4A6741';
+  return '#7A5C3E';
+}
 
-    <!-- Kaart: Koffiesoorten -->
-    <div class="choice-card">
-      <div class="choice-card-header">
-        <span class="choice-card-icon">☕</span>
-        <h3>Koffiesoorten</h3>
-      </div>
-      <ul class="choice-list">
-        <li><span class="dot dot-coffee"></span> Espresso</li>
-        <li><span class="dot dot-coffee"></span> Dubbele espresso</li>
-        <li><span class="dot dot-coffee"></span> Americano</li>
-        <li><span class="dot dot-coffee"></span> Cappuccino</li>
-        <li><span class="dot dot-coffee"></span> Latte macchiato</li>
-        <li><span class="dot dot-coffee"></span> Flat white</li>
-        <li><span class="dot dot-coffee"></span> Koffie verkeerd</li>
-        <li><span class="dot dot-coffee"></span> Macchiato</li>
-        <li><span class="dot dot-coffee"></span> Iced coffee</li>
-      </ul>
-    </div>
+async function loadAll(){
+  const [u,l,ft,ws,et,tc,dn,rec,hh]=await Promise.all([
+    sb.from('users').select('*').eq('household_id',HID),
+    sb.from('locations').select('*').eq('household_id',HID).order('sort_order'),
+    sb.from('fixed_tasks').select('*').eq('household_id',HID).order('sort_order'),
+    sb.from('week_schedule').select('*').eq('household_id',HID),
+    sb.from('extra_tasks').select('*').eq('household_id',HID),
+    sb.from('task_checks').select('*').eq('household_id',HID),
+    sb.from('day_notes').select('*').eq('household_id',HID),
+    sb.from('recipes').select('*').eq('household_id',HID),
+    sb.from('households').select('workdays').eq('id',HID),
+  ]);
+  D.users=u.data||[];D.locations=l.data||[];D.fixedTasks=ft.data||[];
+  D.weekSchedule=ws.data||[];D.extraTasks=et.data||[];D.recipes=rec.data||[];
+  D.checks={};(tc.data||[]).forEach(c=>{D.checks[c.task_id+'_'+c.week_key+'_'+c.day_index]={on:true,by:c.checked_by};});
+  D.notes={};(dn.data||[]).forEach(n=>{D.notes[n.location_id+'_'+n.week_key+'_'+n.day_index]=n.note;});
+  D.workdays=hh.data?.[0]?.workdays||[0,1,3,4];
+}
 
-    <!-- Kaart: Melksoorten -->
-    <div class="choice-card">
-      <div class="choice-card-header">
-        <span class="choice-card-icon">🥛</span>
-        <h3>Melksoorten</h3>
-      </div>
-      <ul class="choice-list">
-        <li><span class="dot dot-milk"></span> Gewone melk</li>
-        <li><span class="dot dot-milk"></span> Havermelk</li>
-        <li><span class="dot dot-milk"></span> Kokosmelk</li>
-        <li><span class="dot dot-milk"></span> Geen melk</li>
-      </ul>
-    </div>
+function setupRT(){
+  rtSubs.forEach(s=>sb.removeChannel(s));rtSubs=[];
+  ['week_schedule','task_checks','extra_tasks','day_notes','recipes'].forEach(t=>{
+    const ch=sb.channel('rt-'+t).on('postgres_changes',{event:'*',schema:'public',table:t},async()=>{
+      await loadAll();
+      if(CU?.role==='worker')renderWorker();else renderMgrWeek();
+    }).subscribe();
+    rtSubs.push(ch);
+  });
+}
 
-    <!-- Kaart: Extra opties -->
-    <div class="choice-card">
-      <div class="choice-card-header">
-        <span class="choice-card-icon">✨</span>
-        <h3>Extra opties</h3>
-      </div>
-      <ul class="choice-list">
-        <li><span class="dot dot-extra"></span> Extra shot espresso</li>
-        <li><span class="dot dot-extra"></span> Suikervrij</li>
-        <li><span class="dot dot-extra"></span> Decaf (cafeïnevrij)</li>
-        <li><span class="dot dot-extra"></span> Extra heet</li>
-        <li><span class="dot dot-extra"></span> IJsblokjes (iced)</li>
-        <li><span class="dot dot-extra"></span> Cacao of kaneel</li>
-        <li><span class="dot dot-extra"></span> Geen melkschuim</li>
-        <li><span class="dot dot-extra"></span> To-go beker</li>
-      </ul>
-    </div>
+async function init(){
+  document.getElementById('loading').style.display='flex';
+  await loadAll();setupRT();
+  document.getElementById('loading').style.display='none';
+  showScr('pin');
+}
 
-  </div>
-</div>
-```
+function pp(d){if(pinBuf.length>=4)return;pinBuf+=d;updDots();if(pinBuf.length===4)setTimeout(chkPin,150);}
+function pdel(){pinBuf=pinBuf.slice(0,-1);updDots();document.getElementById('pin-err').textContent='';}
+function updDots(){for(let i=0;i<4;i++)document.getElementById('pd'+i).classList.toggle('on',i<pinBuf.length);}
 
-  </section>
+async function chkPin(){
+  const user=D.users.find(u=>u.pin===pinBuf);
+  if(user){
+    CU=user;pinBuf='';updDots();
+    if(user.pin==='0000'){
+      const np=prompt(user.language==='pt'?'Escolha um novo PIN (4 dígitos):':'Kies een nieuwe PIN (4 cijfers):');
+      if(np&&/^\d{4}$/.test(np)){await sb.from('users').update({pin:np}).eq('id',user.id);await loadAll();CU=D.users.find(u=>u.id===user.id);}
+    }
+    showScr(user.role==='admin'?'manager':'worker');
+  } else {
+    const msg=lang()==='pt'?'PIN incorreto':'Onjuiste PIN';
+    document.getElementById('pin-err').textContent=msg;
+    pinBuf='';updDots();
+  }
+}
 
-  <!-- =============================================
-       VOORBEELDGESPREKKEN
-  ============================================= -->
+function logout(){CU=null;weekOff=0;pinBuf='';updDots();document.getElementById('pin-err').textContent='';showScr('pin');}
 
-  <section class="examples">
-    <div class="container">
-      <p class="section-label">Voorbeelden in de praktijk</p>
-      <h2 class="section-title">Zo klinkt het in een gesprek</h2>
-      <p class="section-intro">Drie realistische dialogen — van simpel tot wat uitgebreider. Zo weet je precies hoe het klinkt.</p>
+function showScr(n){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s-'+n)?.classList.add('active');
+  if(n==='worker')renderWorker();
+  if(n==='manager')renderManager();
+}
 
-```
-  <div class="examples-grid">
+function chWeek(d){weekOff+=d;updWkLbls();if(CU?.role==='worker')renderWorker();else renderMgrWeek();}
+function updWkLbls(){
+  const l=wlbl(weekOff);
+  document.getElementById('w-week-lbl').textContent=l;
+  const m=document.getElementById('m-week-lbl');if(m)m.textContent=l;
+}
 
-    <!-- Gesprek 1: Eenvoudig -->
-    <div class="example-card">
-      <div class="example-card-header simple">☕ Eenvoudige bestelling</div>
-      <div class="example-body">
-        <div class="bubble bubble-waiter">
-          <div class="speaker">Waiter</div>
-          Welke koffie mag ik voor u maken?
-        </div>
-        <div class="bubble bubble-klant">
-          <div class="speaker">Klant</div>
-          Een espresso, graag.
-        </div>
-        <div class="bubble bubble-waiter">
-          <div class="speaker">Waiter</div>
-          Komt ie! Nog iets extra erbij?
-        </div>
-        <div class="bubble bubble-klant">
-          <div class="speaker">Klant</div>
-          Nee, prima zo.
-        </div>
-        <div class="bubble bubble-waiter">
-          <div class="speaker">Waiter</div>
-          Eén espresso — die komt er zo aan. ✓
-        </div>
-      </div>
-    </div>
+async function ensureWeekSched(off){
+  const wk=wkey(off);
+  if(D.weekSchedule.filter(s=>s.week_key===wk).length)return;
+  const prev=D.weekSchedule.filter(s=>s.week_key===wkey(off-1));
+  if(!prev.length)return;
+  await sb.from('week_schedule').insert(prev.map(s=>({household_id:HID,location_id:s.location_id,week_key:wk,day_index:s.day_index})));
+  await loadAll();
+}
 
-    <!-- Gesprek 2: Melkalternatief -->
-    <div class="example-card">
-      <div class="example-card-header milk">🥛 Met melkalternatief</div>
-      <div class="example-body">
-        <div class="bubble bubble-waiter">
-          <div class="speaker">Waiter</div>
-          Wat mag het zijn?
-        </div>
-        <div class="bubble bubble-klant">
-          <div class="speaker">Klant</div>
-          Een latte, alsjeblieft.
-        </div>
-        <div class="bubble bubble-waiter">
-          <div class="speaker">Waiter</div>
-          Welke melk wil je erbij — gewone, haver of kokos?
-        </div>
-        <div class="bubble bubble-klant">
-          <div class="speaker">Klant</div>
-          Havermelk graag.
-        </div>
-        <div class="bubble bubble-waiter">
-          <div class="speaker">Waiter</div>
-          Latte met havermelk — klopt dat?
-        </div>
-        <div class="bubble bubble-klant">
-          <div class="speaker">Klant</div>
-          Ja, perfect!
-        </div>
-        <div class="bubble bubble-waiter">
-          <div class="speaker">Waiter</div>
-          Top, ogenblikje! ✓
-        </div>
-      </div>
-    </div>
+function renderWorker(){
+  if(!CU)return;
+  const col=ucolor(CU.id);
+  document.getElementById('w-avatar').style.background=col;
+  document.getElementById('w-avatar').textContent=CU.name[0];
+  document.getElementById('w-name').textContent=CU.name;
+  document.getElementById('w-sub').textContent=lang()==='pt'?'Colaboradora':'Medewerker';
+  updWkLbls();
+  ensureWeekSched(weekOff).then(()=>{
+    const wk=wkey(weekOff);
+    const byDay={};D.weekSchedule.filter(s=>s.week_key===wk).forEach(s=>{if(!byDay[s.day_index])byDay[s.day_index]=[];byDay[s.day_index].push(s);});
+    let total=0,done=0,html='';
+    D.workdays.slice().sort((a,b)=>a-b).forEach(di=>{
+      const locs=byDay[di]||[];
+      const extras=D.extraTasks.filter(e=>e.week_key===wk&&e.day_index===di);
+      const recs=D.recipes.filter(r=>r.week_key===wk&&r.day_index===di);
+      if(!locs.length&&!extras.length&&!recs.length)return;
+      let dt=0,dd=0,body='';
+      if(recs.length){
+        body+=`<div class="recipe-block"><span class="recipe-lbl">Recepten vandaag</span>`;
+        recs.forEach(r=>{body+=`<div class="recipe-item"><a href="${r.url}" target="_blank">↗ ${r.name}</a></div>`;});
+        body+='</div>';
+      }
+      locs.forEach(sr=>{
+        const loc=D.locations.find(l=>l.id===sr.location_id);if(!loc)return;
+        const tasks=D.fixedTasks.filter(t=>t.location_id===loc.id);
+        dt+=tasks.length;tasks.forEach(t=>{if(D.checks[t.id+'_'+wk+'_'+di]?.on)dd++;});
+        const locCats=[...new Set(tasks.map(t=>t.category))];
+        const note=D.notes[loc.id+'_'+wk+'_'+di]||'';
+        let lb='';
+        locCats.forEach(cat=>{
+          lb+=`<span class="sec-label">${cats()[cat]||cat}</span>`;
+          tasks.filter(t=>t.category===cat).forEach(t=>{
+            const ck=!!D.checks[t.id+'_'+wk+'_'+di]?.on;
+            lb+=`<div class="task-row${ck?' done-row':''}"><div class="cb${ck?' on':''}" onclick="togTask('${t.id}','${wk}',${di},false)">${ck?'✓':''}</div><span class="task-txt${ck?' done':''}">${txt(t)}</span></div>`;
+          });
+        });
+        lb+=`<span class="sec-label" style="margin-top:.625rem">${lang()==='pt'?'Notas':'Notities'}</span>`;
+        lb+=`<textarea class="notes-area" placeholder="${lang()==='pt'?'Anotações...':'Aantekeningen...'}" onchange="saveNote('${loc.id}','${wk}',${di},this.value)">${note}</textarea>`;
+        lb+=`<button class="save-btn" onclick="doFlash('fl-${di}-${loc.id.slice(0,4)}')">Opslaan</button><div id="fl-${di}-${loc.id.slice(0,4)}" class="flash" style="opacity:0">${lang()==='pt'?'Guardado!':'Opgeslagen!'}</div>`;
+        body+=`<div class="loc-block"><div class="loc-hdr" style="background:${loc.color}15"><div class="loc-dot" style="background:${loc.color}"></div>${loc.name}</div><div class="loc-body">${lb}</div></div>`;
+      });
+      if(extras.length){
+        dt+=extras.length;extras.forEach(e=>{if(D.checks[e.id+'_'+wk+'_'+di]?.on)dd++;});
+        body+=`<span class="sec-label" style="color:var(--caramel)">Extra deze week</span>`;
+        extras.forEach(e=>{
+          const ck=!!D.checks[e.id+'_'+wk+'_'+di]?.on;
+          body+=`<div class="task-row extra-row${ck?' done-row':''}"><div class="cb${ck?' on':''}" onclick="togTask('${e.id}','${wk}',${di},false)">${ck?'✓':''}</div><span class="task-txt${ck?' done':''}">${txt(e)}<span class="badge-extra">${lang()==='pt'?'extra':'extra'}</span></span></div>`;
+        });
+      }
+      total+=dt;done+=dd;
+      html+=`<div class="day-card"><div class="day-hdr" onclick="togDay('wd${di}','wc${di}')"><div class="day-name">${days()[di]}</div><div style="display:flex;align-items:center;gap:8px"><span class="day-prog">${dd}/${dt}</span><span class="day-chev open" id="wc${di}">▾</span></div></div><div id="wd${di}" class="day-body">${body}</div></div>`;
+    });
+    const pct=total?Math.round(done/total*100):0;
+    document.getElementById('w-prog').innerHTML=`<div class="prog-card"><div class="prog-top"><span class="prog-title">${lang()==='pt'?'Progresso da semana':'Voortgang week'}</span><span class="prog-count">${done}/${total} ${lang()==='pt'?'tarefas':'taken'}</span></div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div><div class="prog-pct">${pct}% ${lang()==='pt'?'concluído':'afgerond'}</div></div>`;
+    document.getElementById('w-days').innerHTML=html||`<div class="empty" style="margin-top:1rem">${lang()==='pt'?'Sem tarefas para esta semana.':'Geen taken voor deze week.'}</div>`;
+  });
+}
 
-    <!-- Gesprek 3: Extra wensen -->
-    <div class="example-card">
-      <div class="example-card-header complex">✨ Met extra wensen</div>
-      <div class="example-body">
-        <div class="bubble bubble-waiter">
-          <div class="speaker">Waiter</div>
-          Goedemorgen! Wat kan ik voor je maken?
-        </div>
-        <div class="bubble bubble-klant">
-          <div class="speaker">Klant</div>
-          Een cappuccino graag.
-        </div>
-        <div class="bubble bubble-waiter">
-          <div class="speaker">Waiter</div>
-          Gewone melk of liever een alternatief?
-        </div>
-        <div class="bubble bubble-klant">
-          <div class="speaker">Klant</div>
-          Havermelk, en mag het extra heet?
-        </div>
-        <div class="bubble bubble-waiter">
-          <div class="speaker">Waiter</div>
-          Goed. Cappuccino met havermelk, extra heet — klopt dat?
-        </div>
-        <div class="bubble bubble-klant">
-          <div class="speaker">Klant</div>
-          Precies!
-        </div>
-        <div class="bubble bubble-waiter">
-          <div class="speaker">Waiter</div>
-          Die komt er meteen aan. ✓
-        </div>
-      </div>
-    </div>
+function togDay(id,cid){
+  const el=document.getElementById(id),ch=document.getElementById(cid);if(!el)return;
+  const open=el.style.display!=='none';el.style.display=open?'none':'block';if(ch)ch.classList.toggle('open',!open);
+}
 
-  </div>
-</div>
-```
+async function togTask(tid,wk,di,mgr){
+  const k=tid+'_'+wk+'_'+di;
+  if(D.checks[k]?.on){await sb.from('task_checks').delete().eq('task_id',tid).eq('week_key',wk).eq('day_index',di).eq('household_id',HID);}
+  else{await sb.from('task_checks').upsert({household_id:HID,task_id:tid,task_type:'fixed',week_key:wk,day_index:di,checked_by:CU?.id},{onConflict:'household_id,task_id,week_key,day_index'});}
+  await loadAll();if(mgr)renderMgrWeek();else renderWorker();
+}
 
-  </section>
+async function saveNote(lid,wk,di,val){
+  await sb.from('day_notes').upsert({household_id:HID,location_id:lid,week_key:wk,day_index:di,note:val,updated_at:new Date().toISOString()},{onConflict:'household_id,location_id,week_key,day_index'});
+  await loadAll();
+}
 
-  <!-- =============================================
-       GOUDEN REGEL — samenvatting
-  ============================================= -->
+function doFlash(id){const fl=document.getElementById(id);if(!fl)return;fl.style.opacity='1';setTimeout(()=>fl.style.opacity='0',2000);}
 
-  <section class="golden">
-    <div class="container">
-      <p class="section-label">De gouden regel</p>
-      <h2 class="section-title">Altijd in deze volgorde</h2>
+function renderManager(){
+  if(!CU)return;
+  const col=ucolor(CU.id);
+  document.getElementById('m-avatar').style.background=col;
+  document.getElementById('m-avatar').textContent=CU.name[0];
+  document.getElementById('m-name').textContent=CU.name;
+  document.getElementById('m-sub').textContent='Beheerder';
+  updWkLbls();renderMgrWeek();
+}
 
-```
-  <div class="golden-flow">
-    <div class="golden-step">☕ Koffie</div>
-    <span class="golden-arrow">→</span>
-    <div class="golden-step">🥛 Melk</div>
-    <span class="golden-arrow">→</span>
-    <div class="golden-step">✨ Extra</div>
-    <span class="golden-arrow">→</span>
-    <div class="golden-step">🔁 Herhalen</div>
-    <span class="golden-arrow">→</span>
-    <div class="golden-step">👋 Afronden</div>
-  </div>
+function mTab(n){
+  ['week','plan','extra','recipe','taken','inst'].forEach(t=>{
+    const el=document.getElementById('mt-'+t);if(el)el.style.display=t===n?(t==='week'?'flex':'block'):'none';
+    document.getElementById('t-'+t)?.classList.toggle('on',t===n);
+  });
+  if(n==='week')renderMgrWeek();
+  if(n==='plan')renderPlanGrid();
+  if(n==='extra'){popSels();renderExList();}
+  if(n==='recipe'){popRecSels();renderRecList();}
+  if(n==='taken')renderFixedList();
+  if(n==='inst'){renderLocList();loadInstForm();}
+}
 
-  <p class="golden-sub">"Als je deze volgorde aanhoudt, zit je altijd goed."</p>
-</div>
-```
+function renderMgrWeek(){
+  if(!CU)return;
+  ensureWeekSched(weekOff).then(()=>{
+    const wk=wkey(weekOff);
+    const byDay={};D.weekSchedule.filter(s=>s.week_key===wk).forEach(s=>{if(!byDay[s.day_index])byDay[s.day_index]=[];byDay[s.day_index].push(s);});
+    let html='';
+    D.workdays.slice().sort((a,b)=>a-b).forEach(di=>{
+      const locs=byDay[di]||[];
+      const extras=D.extraTasks.filter(e=>e.week_key===wk&&e.day_index===di);
+      const recs=D.recipes.filter(r=>r.week_key===wk&&r.day_index===di);
+      let dt=0,dd=0,body='';
+      if(recs.length){
+        body+=`<div class="recipe-block"><span class="recipe-lbl">Recepten</span>`;
+        recs.forEach(r=>{body+=`<div class="recipe-item"><a href="${r.url}" target="_blank">↗ ${r.name}</a><button onclick="delRecipe('${r.id}')" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px">✕</button></div>`;});
+        body+='</div>';
+      }
+      locs.forEach(sr=>{
+        const loc=D.locations.find(l=>l.id===sr.location_id);if(!loc)return;
+        const tasks=D.fixedTasks.filter(t=>t.location_id===loc.id);
+        dt+=tasks.length;tasks.forEach(t=>{if(D.checks[t.id+'_'+wk+'_'+di]?.on)dd++;});
+        const locCats=[...new Set(tasks.map(t=>t.category))];
+        const note=D.notes[loc.id+'_'+wk+'_'+di]||'';
+        let lb='';
+        locCats.forEach(cat=>{
+          lb+=`<span class="sec-label">${CAT_NL[cat]||cat}</span>`;
+          tasks.filter(t=>t.category===cat).forEach(t=>{
+            const ck=!!D.checks[t.id+'_'+wk+'_'+di]?.on;
+            const byCol=D.checks[t.id+'_'+wk+'_'+di]?.by?ucolor(D.checks[t.id+'_'+wk+'_'+di].by):'';
+            const byNm=D.checks[t.id+'_'+wk+'_'+di]?.by?D.users.find(u=>u.id===D.checks[t.id+'_'+wk+'_'+di].by)?.name:'';
+            lb+=`<div class="task-row${ck?' done-row':''}"><div class="cb${ck?' on':''}" onclick="togTask('${t.id}','${wk}',${di},true)">${ck?'✓':''}</div><span class="task-txt${ck?' done':''}">${t.text_nl}${ck&&byNm?`<span class="badge-user" style="background:${byCol}20;color:${byCol}">${byNm}</span>`:''}</span></div>`;
+          });
+        });
+        lb+=`<span class="sec-label" style="margin-top:.5rem">Notities Diana</span><div style="font-size:12px;color:var(--muted);padding:.25rem 0;min-height:18px;font-style:italic">${note||'—'}</div>`;
+        body+=`<div class="loc-block"><div class="loc-hdr" style="background:${loc.color}15;justify-content:space-between" draggable="true" ondragstart="dragStart(event,'${sr.id}',${di})" ondragover="event.preventDefault()" ondrop="dragDrop(event,${di})"><div style="display:flex;align-items:center;gap:8px"><div class="loc-dot" style="background:${loc.color}"></div>${loc.name}</div><span style="color:var(--muted);cursor:grab;font-size:16px">⠿</span></div><div class="loc-body">${lb}</div></div>`;
+      });
+      if(extras.length){
+        dt+=extras.length;extras.forEach(e=>{if(D.checks[e.id+'_'+wk+'_'+di]?.on)dd++;});
+        body+=`<span class="sec-label" style="color:var(--caramel);margin-top:.5rem">Extra deze week</span>`;
+        extras.forEach(e=>{
+          const ck=!!D.checks[e.id+'_'+wk+'_'+di]?.on;
+          const byCol=D.checks[e.id+'_'+wk+'_'+di]?.by?ucolor(D.checks[e.id+'_'+wk+'_'+di].by):'';
+          const byNm=D.checks[e.id+'_'+wk+'_'+di]?.by?D.users.find(u=>u.id===D.checks[e.id+'_'+wk+'_'+di].by)?.name:'';
+          body+=`<div class="task-row extra-row${ck?' done-row':''}"><div class="cb${ck?' on':''}" onclick="togTask('${e.id}','${wk}',${di},true)">${ck?'✓':''}</div><span class="task-txt${ck?' done':''}">${e.text_nl}<span class="badge-extra">extra</span>${ck&&byNm?`<span class="badge-user" style="background:${byCol}20;color:${byCol}">${byNm}</span>`:''}</span><button onclick="delExtra('${e.id}')" style="background:none;border:none;cursor:pointer;color:var(--muted);flex-shrink:0">✕</button></div>`;
+        });
+      }
+      html+=`<div class="day-card" ondragover="event.preventDefault()" ondrop="dragDrop(event,${di})"><div class="day-hdr" onclick="togDay('md${di}','mc${di}')"><div class="day-name">${DAYS_NL[di]}</div><div style="display:flex;align-items:center;gap:8px"><span class="day-prog">${dd}/${dt}</span><span class="day-chev open" id="mc${di}">▾</span></div></div><div id="md${di}" class="day-body">${body||`<div class="empty">Geen locaties gepland — ga naar Planning.</div>`}</div></div>`;
+    });
+    const el=document.getElementById('m-days');if(el)el.innerHTML=html||`<div class="empty" style="margin-top:1rem">Geen werkdagen geconfigureerd.</div>`;
+  });
+}
 
-  </section>
+let dragData=null;
+function dragStart(e,sid,fd){dragData={sid,fd};e.dataTransfer.effectAllowed='move';}
+async function dragDrop(e,td){
+  e.preventDefault();if(!dragData||dragData.fd===td)return;
+  await sb.from('week_schedule').update({day_index:td}).eq('id',dragData.sid);
+  dragData=null;await loadAll();renderMgrWeek();renderPlanGrid();
+}
 
-  <!-- =============================================
-       TEAMAFSPRAAK BLOK
-  ============================================= -->
+function renderPlanGrid(){
+  const el=document.getElementById('plan-grid');if(!el)return;
+  const wk=wkey(weekOff);
+  let html='';
+  D.workdays.slice().sort((a,b)=>a-b).forEach(di=>{
+    const sched=D.weekSchedule.filter(s=>s.week_key===wk&&s.day_index===di).map(s=>s.location_id);
+    html+=`<div style="margin-bottom:16px"><div style="font-family:'Fraunces',serif;font-size:14px;font-weight:700;color:var(--espresso);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--border)">${DAYS_NL[di]}</div>`;
+    D.locations.forEach(loc=>{
+      const on=sched.includes(loc.id);
+      html+=`<div onclick="togSched('${loc.id}',${di},'${wk}')" style="display:flex;align-items:center;gap:10px;padding:9px 12px;margin-bottom:4px;border-radius:var(--radius-sm);border:1.5px solid ${on?loc.color:'var(--border)'};background:${on?loc.color+'12':'var(--white)'};cursor:pointer;transition:all .15s">
+        <div class="loc-dot" style="background:${loc.color}"></div>
+        <span style="font-size:13px;flex:1;color:var(--text)">${loc.name}</span>
+        ${on?`<span style="color:${loc.color};font-weight:700">✓</span>`:''}
+      </div>`;
+    });
+    html+='</div>';
+  });
+  el.innerHTML=html;
+}
 
-  <section class="team">
-    <div class="container">
-      <div class="team-box">
-        <div class="icon">🤝</div>
-        <h2>Onze teamafspraak</h2>
-        <p>
-          We volgen <strong>altijd dezelfde volgorde</strong> bij het opnemen van een koffie-bestelling — 
-          of je nu nieuw bent of al jaren werkt. Niet omdat het verplicht is, maar omdat het 
-          <strong>prettiger werkt voor iedereen</strong>: voor jou, voor de klant, en voor het team.<br /><br />
-          Heb je een vraag of wil je iets aanpassen aan de flow? Bespreek het met je teamleider. 
-          Samen zorgen we dat dit handboek actueel en bruikbaar blijft.
-        </p>
-      </div>
-    </div>
-  </section>
+async function togSched(lid,di,wk){
+  const ex=D.weekSchedule.find(s=>s.location_id===lid&&s.week_key===wk&&s.day_index===di);
+  if(ex)await sb.from('week_schedule').delete().eq('id',ex.id);
+  else await sb.from('week_schedule').insert({household_id:HID,location_id:lid,week_key:wk,day_index:di});
+  await loadAll();renderPlanGrid();renderMgrWeek();
+}
 
-  <!-- =============================================
-       FOOTER
-  ============================================= -->
+function toggleRepeat(){
+  const v=document.getElementById('ex-repeat').value;
+  document.getElementById('ex-rep-weeks').style.display=v==='weeks'?'block':'none';
+  document.getElementById('ex-rep-until').style.display=v==='until'?'block':'none';
+}
 
-  <footer>
-    Intern teamhandboek — alleen voor medewerkers &nbsp;·&nbsp; Versie 1.0
-  </footer>
+function popSels(){
+  const ls=document.getElementById('ex-loc'),ds=document.getElementById('ex-day');
+  if(ls)ls.innerHTML=D.locations.map(l=>`<option value="${l.id}">${l.name}</option>`).join('');
+  if(ds)ds.innerHTML=D.workdays.slice().sort((a,b)=>a-b).map(i=>`<option value="${i}">${DAYS_NL[i]}</option>`).join('');
+}
 
+async function addExtra(){
+  const nl=document.getElementById('ex-txt-nl').value.trim();
+  const pt=document.getElementById('ex-txt-pt').value.trim();
+  const loc=document.getElementById('ex-loc').value;
+  const day=parseInt(document.getElementById('ex-day').value);
+  const sOff=parseInt(document.getElementById('ex-week').value);
+  const rep=document.getElementById('ex-repeat').value;
+  if(!nl)return;
+  const wks=[];
+  if(rep==='once'){wks.push(wkey(sOff));}
+  else if(rep==='weeks'){const n=parseInt(document.getElementById('ex-weeks-n').value)||1;for(let i=0;i<n;i++)wks.push(wkey(sOff+i));}
+  else if(rep==='until'){const ud=document.getElementById('ex-until').value;if(!ud)return;let o=sOff;while(true){const w=wkey(o);if(w>ud||o>52)break;wks.push(w);o++;}}
+  await sb.from('extra_tasks').insert(wks.map(w=>({household_id:HID,location_id:loc,week_key:w,day_index:day,text_nl:nl,text_pt:pt||nl})));
+  document.getElementById('ex-txt-nl').value='';document.getElementById('ex-txt-pt').value='';
+  await loadAll();renderExList();mTab('week');
+}
+
+async function delExtra(id){await sb.from('extra_tasks').delete().eq('id',id);await loadAll();renderExList();renderMgrWeek();}
+
+function renderExList(){
+  const el=document.getElementById('ex-list');if(!el)return;
+  const wk=wkey(weekOff);
+  const up=D.extraTasks.filter(e=>e.week_key>=wk);
+  if(!up.length){el.innerHTML='<div class="empty" style="margin-top:.5rem">Geen extra taken gepland.</div>';return;}
+  const gr={};up.forEach(e=>{if(!gr[e.text_nl])gr[e.text_nl]=[];gr[e.text_nl].push(e);});
+  let html='<div class="sec-title">Geplande extra taken</div>';
+  Object.entries(gr).forEach(([t,ts])=>{
+    const wks=ts.map(x=>x.week_key).sort();
+    html+=`<div class="task-row extra-row" style="margin-bottom:6px"><div style="flex:1"><div class="task-txt">${t}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${DAYS_NL[ts[0].day_index]} · ${ts.length>1?`${wks[0]} t/m ${wks[wks.length-1]} (${ts.length}×)`:wks[0]}</div></div><button onclick="delExGroup(${JSON.stringify(ts.map(x=>x.id))})" style="background:none;border:none;cursor:pointer;color:var(--muted)">✕</button></div>`;
+  });
+  el.innerHTML=html;
+}
+
+async function delExGroup(ids){for(const id of ids)await sb.from('extra_tasks').delete().eq('id',id);await loadAll();renderExList();renderMgrWeek();}
+
+function popRecSels(){
+  const ds=document.getElementById('rec-day');
+  if(ds)ds.innerHTML=D.workdays.slice().sort((a,b)=>a-b).map(i=>`<option value="${i}">${DAYS_NL[i]}</option>`).join('');
+}
+
+async function addRecipe(){
+  const name=document.getElementById('rec-name').value.trim();
+  const url=document.getElementById('rec-url').value.trim();
+  const day=parseInt(document.getElementById('rec-day').value);
+  const off=parseInt(document.getElementById('rec-week').value);
+  if(!name||!url)return;
+  await sb.from('recipes').insert({household_id:HID,week_key:wkey(off),day_index:day,name,url});
+  document.getElementById('rec-name').value='';document.getElementById('rec-url').value='';
+  await loadAll();renderRecList();mTab('week');
+}
+
+async function delRecipe(id){await sb.from('recipes').delete().eq('id',id);await loadAll();renderRecList();renderMgrWeek();}
+
+function renderRecList(){
+  const el=document.getElementById('rec-list');if(!el)return;
+  const wk=wkey(weekOff);const up=D.recipes.filter(r=>r.week_key>=wk);
+  if(!up.length){el.innerHTML='<div class="empty" style="margin-top:.5rem">Geen recepten gepland.</div>';return;}
+  el.innerHTML='<div class="sec-title">Geplande recepten</div>'+up.map(r=>`<div class="task-row" style="margin-bottom:4px"><span style="color:var(--caramel)">↗</span><div style="flex:1"><div class="task-txt">${r.name}</div><div style="font-size:11px;color:var(--muted)">${DAYS_NL[r.day_index]} · ${r.week_key}</div></div><button onclick="delRecipe('${r.id}')" style="background:none;border:none;cursor:pointer;color:var(--muted)">✕</button></div>`).join('');
+}
+
+function renderFixedList(){
+  const el=document.getElementById('fixed-list');if(!el)return;
+  const ls=document.getElementById('ft-loc');if(ls)ls.innerHTML=D.locations.map(l=>`<option value="${l.id}">${l.name}</option>`).join('');
+  let html='';
+  D.locations.forEach(loc=>{
+    const tasks=D.fixedTasks.filter(t=>t.location_id===loc.id);
+    html+=`<div class="sec-title" style="display:flex;align-items:center;gap:6px"><div class="loc-dot" style="background:${loc.color}"></div>${loc.name}</div>`;
+    if(!tasks.length){html+='<div class="empty">Geen vaste taken</div>';}
+    else tasks.forEach(t=>{html+=`<div class="task-row" style="margin-bottom:3px"><div style="flex:1"><div class="task-txt">${t.text_nl}</div><div style="font-size:11px;color:var(--muted)">${CAT_NL[t.category]||t.category}${t.text_pt?` · ${t.text_pt}`:''}</div></div><button onclick="delFixed('${t.id}')" style="background:none;border:none;cursor:pointer;color:var(--muted)">✕</button></div>`;});
+  });
+  el.innerHTML=html;
+}
+
+async function addFixed(){
+  const nl=document.getElementById('ft-nl').value.trim();
+  const pt=document.getElementById('ft-pt').value.trim();
+  const loc=document.getElementById('ft-loc').value;
+  const cat=document.getElementById('ft-cat').value;
+  if(!nl||!loc)return;
+  await sb.from('fixed_tasks').insert({household_id:HID,location_id:loc,category:cat,text_nl:nl,text_pt:pt||nl});
+  document.getElementById('ft-nl').value='';document.getElementById('ft-pt').value='';
+  await loadAll();renderFixedList();
+}
+
+async function delFixed(id){await sb.from('fixed_tasks').delete().eq('id',id);await loadAll();renderFixedList();}
+
+function renderLocList(){
+  const el=document.getElementById('loc-list');if(!el)return;
+  if(!D.locations.length){el.innerHTML='<div class="empty">Nog geen locaties.</div>';return;}
+  el.innerHTML=D.locations.map(l=>`<div class="task-row" style="margin-bottom:4px"><div class="loc-dot" style="background:${l.color}"></div><span class="task-txt">${l.name}</span><button onclick="delLoc('${l.id}')" style="background:none;border:none;cursor:pointer;color:var(--muted)">✕</button></div>`).join('');
+}
+
+async function addLocation(){
+  const name=document.getElementById('new-loc-name').value.trim();
+  const color=document.getElementById('new-loc-color').value;
+  if(!name)return;
+  const mo=Math.max(0,...D.locations.map(l=>l.sort_order));
+  await sb.from('locations').insert({household_id:HID,name,color,sort_order:mo+1});
+  document.getElementById('new-loc-name').value='';
+  await loadAll();renderLocList();
+}
+
+async function delLoc(id){
+  if(!confirm('Locatie verwijderen inclusief alle taken?'))return;
+  await sb.from('fixed_tasks').delete().eq('location_id',id);
+  await sb.from('week_schedule').delete().eq('location_id',id);
+  await sb.from('locations').delete().eq('id',id);
+  await loadAll();renderLocList();renderMgrWeek();
+}
+
+function loadInstForm(){
+  if(!CU)return;
+  const ni=document.getElementById('inst-name'),li=document.getElementById('inst-lang');
+  if(ni)ni.value=CU.name;if(li)li.value=CU.language||'nl';
+  const dt=document.getElementById('day-toggles');if(!dt)return;dt.innerHTML='';
+  DAYS_NL.forEach((d,i)=>{
+    const b=document.createElement('button');b.className='day-pill'+(D.workdays.includes(i)?' on':'');
+    b.textContent=d;b.onclick=()=>{
+      if(D.workdays.includes(i))D.workdays=D.workdays.filter(x=>x!==i);else D.workdays.push(i);
+      loadInstForm();
+    };dt.appendChild(b);
+  });
+}
+
+async function saveWorkdays(){
+  await sb.from('households').update({workdays:D.workdays}).eq('id',HID);
+  await loadAll();doFlash('wd-flash');
+}
+
+async function saveProfile(){
+  const name=document.getElementById('inst-name').value.trim();
+  const lang2=document.getElementById('inst-lang').value;
+  const pin=document.getElementById('inst-pin').value;
+  const pin2=document.getElementById('inst-pin2').value;
+  if(pin){if(!/^\d{4}$/.test(pin)){alert('PIN moet 4 cijfers zijn.');return;}if(pin!==pin2){alert('PINs komen niet overeen.');return;}}
+  const upd={name,language:lang2};if(pin)upd.pin=pin;
+  await sb.from('users').update(upd).eq('id',CU.id);
+  await loadAll();CU=D.users.find(u=>u.id===CU.id);
+  document.getElementById('inst-pin').value='';document.getElementById('inst-pin2').value='';
+  doFlash('inst-flash');renderManager();
+}
+
+async function clearChecks(){
+  if(!confirm('Alle vinkjes voor deze week wissen?'))return;
+  await sb.from('task_checks').delete().eq('household_id',HID).eq('week_key',wkey(weekOff));
+  await loadAll();renderMgrWeek();
+}
+
+async function autoTranslate(fId,tId){
+  const fEl=document.getElementById(fId),tEl=document.getElementById(tId);
+  if(!fEl||!tEl||!fEl.value.trim()||tEl.value.trim())return;
+  tEl.placeholder='Vertalen...';
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:100,
+        system:'Vertaal de volgende huishoudtaak naar Europees Portugees. Geef ALLEEN de vertaling terug, geen uitleg, geen aanhalingstekens.',
+        messages:[{role:'user',content:fEl.value.trim()}]})});
+    const d=await res.json();const t=d.content?.[0]?.text?.trim();
+    if(t)tEl.value=t;
+  }catch(e){}
+  tEl.placeholder='Automatisch vertaald...';
+}
+
+init();
+</script>
 </body>
 </html>
